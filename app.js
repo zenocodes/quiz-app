@@ -1,5 +1,5 @@
-import { render } from 'ejs'
 import express from 'express'
+import bcrypt from 'bcrypt'
 
 const app = express()
 
@@ -18,6 +18,11 @@ const users = [
         name: 'Yule Mwingine', 
         email: 'ym@quiz-app.com', 
         password: 'test1234'
+    },
+    {
+        name: "Azron Brian",
+        email: "az@test.com",
+        password: "$2b$10$9hWdqZL0mkfulvadCWSfGexoCw7WL1Smv.DDa7mltepBRY5WsCNSO"
     }
 ]
 
@@ -28,7 +33,34 @@ app.get('/', (req, res) => {
 
 // display login page
 app.get('/login', (req, res) => {
-    res.render('login')
+    const user = {
+        email: '',
+        password: ''
+    }
+    res.render('login', {error: false, user: user})
+})
+
+// process login form
+app.post('/login', (req, res) => {
+    const user = {
+        email: req.body.email,
+        password: req.body.password
+    }
+
+    let userExists = users.find(account => account.email === user.email)
+    if (userExists) {
+        bcrypt.compare(user.password, userExists.password, (error, passwordMatches) => {
+            if (passwordMatches) {
+                res.send('grant access')
+            } else {
+                let message = 'Incorrect password.'
+                res.render('login', {error: true, message: message, user: user})
+            }
+        })
+    } else {
+        let message = 'Account does not exist. Please create one.'
+        res.render('login', {error: true, message: message, user: user})
+    }
 })
 
 // display signup page
@@ -53,6 +85,20 @@ app.post('/signup', (req, res) => {
 
     if (user.password === user.confirmPassword) {
         
+        // check if user exists
+        let userExists = users.find(account => account.email === user.email)
+        if (userExists) {
+            let message = 'Account already exists with the email provided.'
+            res.render('signup', {error: true, message: message, user: user})
+        } else {
+            // create account
+            bcrypt.hash(user.password, 10, (error, hash) => {
+                user.password = hash,
+                res.send(user)
+            })
+            
+        }
+
     } else {
         let message = 'Password/confirm password mismatch'
         res.render('signup', {error: true, message: message, user: user})
