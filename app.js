@@ -1,30 +1,18 @@
 import express from 'express'
 import bcrypt from 'bcrypt'
+import mysql from 'mysql'
 
 const app = express()
+const connection = mysql.createConnection({
+    host: 'localhost',
+    user: 'root',
+    password: '',
+    database: 'quiz_app'
+})
 
 app.set('view engine', 'ejs')
 app.use(express.static('public'))
 app.use(express.urlencoded({ extended: false }))
-
-
-const users = [
-    { 
-        name: 'Jina Lake', 
-        email: 'jl@quiz-app.com', 
-        password: 'test1234'
-    },
-    { 
-        name: 'Yule Mwingine', 
-        email: 'ym@quiz-app.com', 
-        password: 'test1234'
-    },
-    {
-        name: "Azron Brian",
-        email: "az@test.com",
-        password: "$2b$10$9hWdqZL0mkfulvadCWSfGexoCw7WL1Smv.DDa7mltepBRY5WsCNSO"
-    }
-]
 
 // landing page
 app.get('/', (req, res) => {
@@ -47,20 +35,24 @@ app.post('/login', (req, res) => {
         password: req.body.password
     }
 
-    let userExists = users.find(account => account.email === user.email)
-    if (userExists) {
-        bcrypt.compare(user.password, userExists.password, (error, passwordMatches) => {
-            if (passwordMatches) {
-                res.send('grant access')
+    let sql = 'SELECT * FROM student WHERE email = ?'
+    connection.query(
+        sql, [user.email], (error, results) => {
+            if (results.length > 0) {
+                bcrypt.compare(user.password, results[0].password, (error, passwordMatches) => {
+                    if (passwordMatches) {
+                        res.send('grant access')
+                    } else {
+                        let message = 'Incorrect password.'
+                        res.render('login', {error: true, message: message, user: user})
+                    }
+                })
             } else {
-                let message = 'Incorrect password.'
+                let message = 'Account does not exist. Please create one.'
                 res.render('login', {error: true, message: message, user: user})
             }
-        })
-    } else {
-        let message = 'Account does not exist. Please create one.'
-        res.render('login', {error: true, message: message, user: user})
-    }
+        }
+    )
 })
 
 // display signup page
@@ -86,18 +78,31 @@ app.post('/signup', (req, res) => {
     if (user.password === user.confirmPassword) {
         
         // check if user exists
-        let userExists = users.find(account => account.email === user.email)
-        if (userExists) {
-            let message = 'Account already exists with the email provided.'
-            res.render('signup', {error: true, message: message, user: user})
-        } else {
-            // create account
-            bcrypt.hash(user.password, 10, (error, hash) => {
-                user.password = hash,
-                res.send(user)
-            })
-            
-        }
+
+        let sql = 'SELECT * FROM student WHERE email = ?'
+        connection.query(
+            sql, [user.email], (error, results) => {
+                if (results.length > 0) {
+                    let message = 'Account already exists with the email provided.'
+                    res.render('signup', {error: true, message: message, user: user})
+                } else {
+                    bcrypt.hash(user.password, 10, (error, hash) => {
+                        let sql = 'INSERT INTO student (email, name, password) VALUES (?,?,?)'
+                        connection.query(
+                            sql,
+                            [
+                                user.email,
+                                user.name, 
+                                hash
+                            ], 
+                            (error, results) => {
+                                res.send('account successfully created')
+                            }
+                        )
+                    })
+                }
+            }
+        )
 
     } else {
         let message = 'Password/confirm password mismatch'
