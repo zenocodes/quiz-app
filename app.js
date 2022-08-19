@@ -2,6 +2,7 @@ import express from 'express'
 import session from 'express-session'
 import bcrypt from 'bcrypt'
 import mysql from 'mysql'
+import multer from 'multer'
 
 const app = express()
 const connection = mysql.createConnection({
@@ -10,6 +11,8 @@ const connection = mysql.createConnection({
     password: '',
     database: 'quiz_app'
 })
+
+const uploads = multer({ dest: 'public/uploads/' })
 
 app.set('view engine', 'ejs')
 app.use(express.static('public'))
@@ -46,6 +49,60 @@ app.get('/dashboard', (req, res) => {
     } else {
         res.redirect('/login')
     }
+})
+
+// profile
+app.get('/profile', (req, res) => {
+    if (res.locals.isLoggedIn) {
+        
+        let sql = 'SELECT * FROM student WHERE s_id = ?'
+        connection.query(
+            sql, [req.session.userID], (error, results) => {
+                res.render('profile', {profile: results[0]})
+            }
+        )
+
+    } else {
+        res.redirect('/login')
+    }
+})
+
+// edit profile
+app.get('/edit-profile', (req, res) => {
+    if (res.locals.isLoggedIn) {
+        
+        let sql = 'SELECT * FROM student WHERE s_id = ?'
+        connection.query(
+            sql, [req.session.userID], (error, results) => {
+                res.render('edit-profile', {profile: results[0]})
+            }
+        )
+
+    } else {
+        res.redirect('/login')
+    }
+})
+
+app.post('/edit-profile/:id', uploads.single('picture'), (req, res) => {
+    
+    let sql = 'UPDATE student SET email = ?, name = ?, gender = ?, dob = ?, picture = ?, contacts = ? WHERE s_id = ?'
+
+    connection.query(
+        sql,
+        [
+            req.body.email,
+            req.body.name,
+            req.body.gender,
+            req.body.dob,
+            req.file.filename,
+            req.body.contacts,
+            parseInt(req.params.id)
+        ],
+        (error, results) => {
+            res.redirect('/profile')
+        }
+    )
+
 })
 
 // display login page
