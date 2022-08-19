@@ -1,4 +1,5 @@
 import express from 'express'
+import session from 'express-session'
 import bcrypt from 'bcrypt'
 import mysql from 'mysql'
 
@@ -13,10 +14,38 @@ const connection = mysql.createConnection({
 app.set('view engine', 'ejs')
 app.use(express.static('public'))
 app.use(express.urlencoded({ extended: false }))
+// prepare to use session
+app.use(session({
+    secret: 'maswali',
+    saveUninitialized: false,
+    resave: true
+}))
+
+
+// continually check is user is logged in
+app.use((req, res, next) => {
+    if (req.session.userID === undefined) {
+        res.locals.isLoggedIn = false
+        res.locals.username = 'Guest'
+    } else {
+        res.locals.isLoggedIn = true
+        res.locals.username = req.session.username
+    }
+    next()
+})
 
 // landing page
 app.get('/', (req, res) => {
     res.render('index')
+})
+
+// dashboard
+app.get('/dashboard', (req, res) => {
+    if (res.locals.isLoggedIn) {
+        res.render('dashboard')
+    } else {
+        res.redirect('/login')
+    }
 })
 
 // display login page
@@ -41,7 +70,9 @@ app.post('/login', (req, res) => {
             if (results.length > 0) {
                 bcrypt.compare(user.password, results[0].password, (error, passwordMatches) => {
                     if (passwordMatches) {
-                        res.send('grant access')
+                        req.session.userID = results[0].s_id
+                        req.session.username = results[0].name.split(' ')[0]
+                        res.redirect('/dashboard')
                     } else {
                         let message = 'Incorrect password.'
                         res.render('login', {error: true, message: message, user: user})
@@ -108,6 +139,14 @@ app.post('/signup', (req, res) => {
         let message = 'Password/confirm password mismatch'
         res.render('signup', {error: true, message: message, user: user})
     }
+})
+
+// logout functionality
+app.get('/logout', (req, res) => {
+    // kill session
+    req.session.destroy(() => {
+        res.redirect('/')
+    })
 })
 
 
