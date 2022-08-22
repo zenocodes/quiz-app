@@ -84,24 +84,43 @@ app.get('/edit-profile', (req, res) => {
 })
 
 app.post('/edit-profile/:id', uploads.single('picture'), (req, res) => {
-    
-    let sql = 'UPDATE student SET email = ?, name = ?, gender = ?, dob = ?, picture = ?, contacts = ? WHERE s_id = ?'
 
-    connection.query(
-        sql,
-        [
-            req.body.email,
-            req.body.name,
-            req.body.gender,
-            req.body.dob,
-            req.file.filename,
-            req.body.contacts,
-            parseInt(req.params.id)
-        ],
-        (error, results) => {
-            res.redirect('/profile')
-        }
-    )
+    if (req.file) {
+        let sql = 'UPDATE student SET email = ?, name = ?, gender = ?, dob = ?, picture = ?, contacts = ? WHERE s_id = ?'
+
+        connection.query(
+            sql,
+            [
+                req.body.email,
+                req.body.name,
+                req.body.gender,
+                req.body.dob,
+                req.file.filename,
+                req.body.contacts,
+                parseInt(req.params.id)
+            ],
+            (error, results) => {
+                res.redirect('/profile')
+            }
+        )
+    } else {
+        let sql = 'UPDATE student SET email = ?, name = ?, gender = ?, dob = ?, contacts = ? WHERE s_id = ?'
+
+        connection.query(
+            sql,
+            [
+                req.body.email,
+                req.body.name,
+                req.body.gender,
+                req.body.dob,
+                req.body.contacts,
+                parseInt(req.params.id)
+            ],
+            (error, results) => {
+                res.redirect('/profile')
+            }
+        )
+    }
 
 })
 
