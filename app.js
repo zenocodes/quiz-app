@@ -51,6 +51,11 @@ app.get('/dashboard', (req, res) => {
     }
 })
 
+// questions
+app.get('/quiz', (req, res) => {
+    res.render('quiz')
+})
+
 // profile
 app.get('/profile', (req, res) => {
     if (res.locals.isLoggedIn) {
