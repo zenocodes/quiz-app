@@ -56,6 +56,26 @@ app.get('/quiz', (req, res) => {
     res.render('quiz')
 })
 
+app.post('/quiz', (req, res) => {
+    const choices = []
+    const answers = req.body.markingScheme.split(',')
+
+    for(let i = 1; i <= 10; i++){
+        let choice = {
+            id: i,
+            yourAnswer: req.body[`q${i}`],
+            correctAnswer: answers[i - 1],
+            score: 0
+        }
+        if (choice.yourAnswer === choice.correctAnswer) {
+            choice.score = 1
+        }
+        choices.push(choice)
+    }
+    console.log(choices)
+    console.log(`You scored ${choices.map(choice => choice.score).reduce((a,b) => a + b)}`)
+})
+
 // profile
 app.get('/profile', (req, res) => {
     if (res.locals.isLoggedIn) {
