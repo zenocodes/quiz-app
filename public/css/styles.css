@@ -165,3 +165,14 @@ nav li:hover {
 #questions .choice:hover {
     background-color: #c9cacb;
 }
+
+#questions input[type="submit"] {
+    background-color: #00E0D4;
+    border: 1px solid #00E0D4;
+    font-family: Montserrat-Bold;
+    letter-spacing: 2px;
+    font-size: 25px;
+    color: #fff;
+    padding: 10px;
+    margin: 20px 0;
+}
