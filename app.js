@@ -51,9 +51,25 @@ app.get('/dashboard', (req, res) => {
     }
 })
 
+// results
+app.get('/results', (req, res) => {
+    let sql = 'SELECT * FROM score WHERE s_id_fk = ?'
+    connection.query(
+        sql, 
+        [req.session.userID], 
+        (error, results) => {
+            res.render('results', {results: results[0]})
+        }
+    )
+})
+
 // questions
 app.get('/quiz', (req, res) => {
-    res.render('quiz')
+    if (res.locals.isLoggedIn) {
+        res.render('quiz')
+    } else {
+        res.redirect('/login')
+    }
 })
 
 app.post('/quiz', (req, res) => {
@@ -72,8 +88,19 @@ app.post('/quiz', (req, res) => {
         }
         choices.push(choice)
     }
-    console.log(choices)
-    console.log(`You scored ${choices.map(choice => choice.score).reduce((a,b) => a + b)}`)
+
+    let sql = 'INSERT INTO score (s_id_fk, response, results) VALUES (?,JSON_ARRAY(?),?)'
+    connection.query(
+        sql, 
+        [
+            req.session.userID,
+            [...choices.map(choice => choice.yourAnswer)],
+            choices.map(choice => choice.score).reduce((a,b) => a + b)
+        ], 
+        (error, results) => {
+            res.redirect('/results')
+        }
+    )
 })
 
 // profile
