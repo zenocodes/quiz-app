@@ -3,29 +3,43 @@
 
     <main id="results" class="container">
         <h1>You score <%= results.results %></h1>
+
+        <% questions.forEach(question => { %>
+
+            <div class="question">
+                <h1><%= question.question %></h1>
+                <div>
+                    <% question.choices.forEach(choice => { %>
+                        <p class="choice"><%= choice %></p>
+                    <% }) %>
+                </div>
+            </div>
+
+        <% }) %>
+
     </main>
 
     <script type="module">
 
-        import questions from '/js/data.js'
+        // import questions from '/js/data.js'
 
-        let main = document.querySelector('main')
-        questions.forEach(question => {
-            let div = document.createElement('div')
-            div.className = 'question'
-            let h1 = document.createElement('h1')
-            h1.textContent = question.question
-            div.appendChild(h1)
-            let choices = document.createElement('div')
-            question.choices.forEach(choice => {
-                let p = document.createElement('p')
-                p.className = 'choice'
-                p.textContent = choice
-                choices.appendChild(p)
-            })
-            div.appendChild(choices)
-            main.appendChild(div)
-        });
+        // let main = document.querySelector('main')
+        // questions.forEach(question => {
+        //     let div = document.createElement('div')
+        //     div.className = 'question'
+        //     let h1 = document.createElement('h1')
+        //     h1.textContent = question.question
+        //     div.appendChild(h1)
+        //     let choices = document.createElement('div')
+        //     question.choices.forEach(choice => {
+        //         let p = document.createElement('p')
+        //         p.className = 'choice'
+        //         p.textContent = choice
+        //         choices.appendChild(p)
+        //     })
+        //     div.appendChild(choices)
+        //     main.appendChild(div)
+        // });
 
     </script>
 
