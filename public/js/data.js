@@ -7,7 +7,7 @@ const questions = [
             "Structured Query Language",
             "Structured Question Language"
         ],
-        answer: "Structure Query Language"
+        answer: "Structured Query Language"
     },
     {
         id: 2,
