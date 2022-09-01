@@ -95,6 +95,10 @@ nav li:hover {
     color: #000;
 }
 
+#login-form #login-admin {
+    color: #00E0D4;
+}
+
 #profile {
     text-align: center;    
 }
